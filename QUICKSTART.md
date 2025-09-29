@@ -39,7 +39,7 @@ node .\server.js
 ```
 > **小提醒：**  
 > PowerShell 需要加上 `.\` 來指定目前資料夾的檔案，而 cmd 則直接輸入檔名即可。  
-> 如果瀏覽器打不開 http://localhost:3000，請檢查 server.js 是否有設定正確的 PORT。
+> 如果瀏覽器打不開 http://localhost:3000 ，請檢查 server.js 是否有設定正確的 PORT。
 
 ---
 
