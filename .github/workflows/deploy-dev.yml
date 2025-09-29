@@ -1,0 +1,45 @@
+name: Deploy to Cloud Run (dev)
+on:
+  push:
+    branches: [ "main" ]     # 當 main 分支有更新時自動部署到 dev
+  workflow_dispatch: {}       # 允許手動觸發
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: 'read'
+      id-token: 'write'       # 若改用 WIF，這個權限會用到
+    steps:
+      - name: 取得程式碼
+        uses: actions/checkout@v4
+
+      # === A) 金鑰方案（快速開始）：使用 Service Account JSON ===
+      - name: 登入 Google Cloud（使用 Service Account 金鑰）
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      - name: 安裝 gcloud 並指定專案
+        uses: google-github-actions/setup-gcloud@v2
+        with:
+          project_id: ${{ secrets.GCP_PROJECT_ID }}
+
+      - name: （冪等）啟用必要 API
+        run: |
+          gcloud services enable run.googleapis.com cloudbuild.googleapis.com artifactregistry.googleapis.com
+
+      - name: Cloud Build 建置 + 推送映像到 Artifact Registry
+        run: |
+          gcloud builds submit hello-world-app             --tag ${{ secrets.GCP_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ secrets.GCP_AR_REPO }}/hello-world-app:${{ github.sha }}
+
+      - name: 部署到 Cloud Run（dev）
+        run: |
+          gcloud run deploy ${{ secrets.CLOUD_RUN_SERVICE_DEV }}             --image ${{ secrets.GCP_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ secrets.GCP_AR_REPO }}/hello-world-app:${{ github.sha }}             --region ${{ secrets.GCP_REGION }}             --allow-unauthenticated             --set-env-vars PORT=3000
+
+      # === B) WIF 無金鑰（正式建議）===
+      # 若改用 WIF，請將上方的 auth 步驟改為：
+      # - uses: google-github-actions/auth@v2
+      #   with:
+      #     workload_identity_provider: ${{ secrets.GCP_WIF_PROVIDER }}
+      #     service_account: ${{ secrets.GCP_WIF_SA }}

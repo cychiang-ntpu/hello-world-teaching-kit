@@ -1,0 +1,39 @@
+# Node.js
+node_modules/
+npm-debug.log*
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.env
+
+# VS Code
+.vscode/
+.history/
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# Build output
+dist/
+build/
+out/
+
+# Logs
+*.log
+
+# Coverage reports
+coverage/
+*.cover
+
+# Temporary files
+*.tmp
+*.swp
+*.swo
+
+# Others
+*.bak
+*.old
