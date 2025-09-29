@@ -1,0 +1,21 @@
+name: CI
+on:
+  pull_request:
+    branches: [ "main" ]   # 當 PR 目標 main 分支時觸發
+jobs:
+  test:
+    runs-on: ubuntu-latest  # 使用 GitHub 提供的 Ubuntu Runner
+    steps:
+      - name: 取得程式碼
+        uses: actions/checkout@v4
+
+      - name: 安裝 Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: 安裝依賴（hello-world-app）
+        run: npm ci --prefix hello-world-app
+
+      - name: 煙霧測試（顯示一行訊息代表流程正常執行）
+        run: node -e "console.log('ci ok')"
