@@ -255,6 +255,18 @@ gcloud auth revoke
 
 ---
 
+> **補充：什麼是 Cloud Build？**  
+> Cloud Build 是 Google Cloud 的自動建置服務，可以幫你把原始程式碼（例如 Node.js 專案）自動打包成 Docker 容器映像檔。  
+>  
+> 在本教學流程裡，你會用 `gcloud builds submit` 指令，讓 Cloud Build 幫你讀取 `hello-world-app` 資料夾下的 Dockerfile，建置出 Docker 映像檔，並自動推送到 Artifact Registry。  
+>  
+> **簡單來說：**  
+> - Cloud Build 就像「雲端打包機器」，幫你把程式變成可部署的容器。
+> - 支援多種語言和建置流程，適合 CI/CD 自動化部署。
+> - 想了解細節，請參考 [Cloud Build 官方說明](https://cloud.google.com/build/docs/overview)
+
+---
+
 > **補充：什麼是 Artifact Registry？**  
 > Artifact Registry 是 Google Cloud 提供的「雲端儲存空間」，專門用來存放軟體建置出來的檔案（例如 Docker 容器映像檔、套件、程式庫等）。  
 >  
@@ -265,3 +277,15 @@ gcloud auth revoke
 > - 你可以在 GCP 控制台裡看到所有已上傳的映像檔，也能設定權限，決定誰可以存取。  
 > - 這步驟是自動化部署流程中不可或缺的一環。
 > - 想了解細節，請進一步看 [Artifact Registry overview](https://cloud.google.com/artifact-registry/docs?_gl=1*1afdyt8*_up*MQ..&gclid=CjwKCAjwuePGBhBZEiwAIGCVS6S22IgWd31LvF6vN_tSVeKjztDj3lWj4okQW1gv5NMZyPHAVw5ZoRoC_rsQAvD_BwE&gclsrc=aw.ds)
+
+---
+
+> **補充：什麼是 Cloud Run？**  
+> Cloud Run 是 Google Cloud 的「無伺服器」容器執行平台，可以直接把 Docker 容器部署到雲端，讓你的程式自動擴展、公開給全世界存取。  
+>  
+> 在本教學流程裡，你會用 `gcloud run deploy` 指令，把剛剛建好的 Docker 映像檔部署到 Cloud Run，並取得一個 HTTPS 網址。  
+>  
+> **簡單來說：**  
+> - Cloud Run 幫你「雲端啟動」容器，不用自己架伺服器。
+> - 支援自動擴展、流量管理、IAM 權限控管。
+> - 想了解細節，請參考 [Cloud Run 官方說明](https://cloud.google.com/run/docs/overview)
