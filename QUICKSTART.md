@@ -43,6 +43,34 @@ node .\server.js
 
 ---
 
+### （進階）本地用 Docker 跑 Hello World
+
+> 如果你已安裝 [Docker Desktop](https://www.docker.com/products/docker-desktop/)，可以直接用 hello-world-app 資料夾下的 Dockerfile 來測試。
+
+1. **建置 Docker 映像檔**  
+   在終端機進入 `hello-world-app` 資料夾，執行：
+
+   ```powershell
+   docker build -t hello-world-app .
+   ```
+
+2. **啟動容器**  
+   執行：
+
+   ```powershell
+   docker run -p 3000:3000 hello-world-app
+   ```
+
+3. **測試**  
+   打開瀏覽器，輸入 [http://localhost:3000](http://localhost:3000) 應該能看到 Hello World 頁面。
+
+> **補充說明：**  
+> - `docker build` 會根據 Dockerfile 建立映像檔。  
+> - `docker run -p 3000:3000` 會把本機的 3000 port 映射到容器的 3000 port。  
+> - 若要停止容器，按下 `Ctrl+C` 或用 `docker ps` 查詢容器 ID，再用 `docker stop <CONTAINER_ID>` 停止。
+
+---
+
 ## 3) 安裝雲端工具
 
 - **Google Cloud SDK（gcloud）**：用來操作 Google Cloud 的指令工具。  
