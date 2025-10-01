@@ -1,45 +1,54 @@
-name: Deploy to Cloud Run (dev)
+name: Deploy to Cloud Run (Dev)   # 這個 workflow 的名稱，會顯示在 GitHub Actions 頁面
+
 on:
   push:
-    branches: [ "main" ]     # 當 main 分支有更新時自動部署到 dev
-  workflow_dispatch: {}       # 允許手動觸發
+    branches: [ "main" ]          # 只有 push 到 main 分支時才會觸發這個 workflow
 
 jobs:
   deploy:
-    runs-on: ubuntu-latest
-    permissions:
-      contents: 'read'
-      id-token: 'write'       # 若改用 WIF，這個權限會用到
+    runs-on: ubuntu-latest        # 指定 runner 執行環境為最新版 Ubuntu Linux
+
     steps:
       - name: 取得程式碼
         uses: actions/checkout@v4
+        # uses: 指定要用哪個 action
+        # actions/checkout@v4：官方提供的 checkout action，第4版
+        # 這個 action 會把你的 repository 程式碼下載到 runner 上
 
-      # === A) 金鑰方案（快速開始）：使用 Service Account JSON ===
-      - name: 登入 Google Cloud（使用 Service Account 金鑰）
+      - name: 設定 GCP 認證
         uses: google-github-actions/auth@v2
         with:
           credentials_json: ${{ secrets.GCP_SA_KEY }}
+          # credentials_json：GCP Service Account 金鑰（JSON 格式）
+          # ${{ secrets.GCP_SA_KEY }}：從 GitHub Secrets 讀取金鑰，避免金鑰外洩
 
-      - name: 安裝 gcloud 並指定專案
+      - name: 設定 gcloud CLI
         uses: google-github-actions/setup-gcloud@v2
         with:
           project_id: ${{ secrets.GCP_PROJECT_ID }}
+          # project_id：你的 GCP 專案 ID，從 Secrets 讀取
+          install_components: 'beta'
+          # install_components：安裝 gcloud 的 beta 元件（有些新功能需要）
 
-      - name: （冪等）啟用必要 API
+      - name: 建置並推送映像到 Artifact Registry
         run: |
-          gcloud services enable run.googleapis.com cloudbuild.googleapis.com artifactregistry.googleapis.com
+          gcloud builds submit --tag asia-east1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ secrets.GCP_AR_REPO }}/hello-world-app:latest ./hello-world-app
+          # gcloud builds submit：用 Cloud Build 建置 Docker 映像並推送到 Artifact Registry
+          # --tag：指定映像檔的完整路徑與名稱
+          # asia-east1-docker.pkg.dev：台灣區域的 Artifact Registry 網域
+          # ${{ secrets.GCP_PROJECT_ID }}：GCP 專案 ID
+          # ${{ secrets.GCP_AR_REPO }}：Artifact Registry 倉庫名稱
+          # hello-world-app:latest：映像檔名稱與標籤（latest 代表最新版）
+          # ./hello-world-app：指定 Dockerfile 與程式碼所在的目錄
 
-      - name: Cloud Build 建置 + 推送映像到 Artifact Registry
+      - name: 部署到 Cloud Run
         run: |
-          gcloud builds submit hello-world-app             --tag ${{ secrets.GCP_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ secrets.GCP_AR_REPO }}/hello-world-app:${{ github.sha }}
-
-      - name: 部署到 Cloud Run（dev）
-        run: |
-          gcloud run deploy ${{ secrets.CLOUD_RUN_SERVICE_DEV }}             --image ${{ secrets.GCP_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ secrets.GCP_AR_REPO }}/hello-world-app:${{ github.sha }}             --region ${{ secrets.GCP_REGION }}             --allow-unauthenticated             --set-env-vars PORT=3000
-
-      # === B) WIF 無金鑰（正式建議）===
-      # 若改用 WIF，請將上方的 auth 步驟改為：
-      # - uses: google-github-actions/auth@v2
-      #   with:
-      #     workload_identity_provider: ${{ secrets.GCP_WIF_PROVIDER }}
-      #     service_account: ${{ secrets.GCP_WIF_SA }}
+          gcloud run deploy ${{ secrets.CLOUD_RUN_SERVICE_DEV }} \
+            --image asia-east1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ secrets.GCP_AR_REPO }}/hello-world-app:latest \
+            --region ${{ secrets.GCP_REGION }} \
+            --allow-unauthenticated
+          # gcloud run deploy：部署服務到 Cloud Run
+          # ${{ secrets.CLOUD_RUN_SERVICE_DEV }}：Cloud Run 服務名稱
+          # --image：指定要部署的映像檔路徑
+          # --region：指定部署區域（如 asia-east1）
+          # --allow-unauthenticated：允許所有人（不需登入）都能存取這個服務
