@@ -1,21 +1,31 @@
 name: CI
 on:
   pull_request:
-    branches: [ "main" ]   # 當 PR 目標 main 分支時觸發
+    branches: [ "main" ]   # 只有當 PR 目標是 main 分支時才會觸發
+  push:
+    branches: [ "main" ]   # 只有當直接 push 到 main 分支時才會觸發
 jobs:
   test:
-    runs-on: ubuntu-latest  # 使用 GitHub 提供的 Ubuntu Runner
+    runs-on: ubuntu-latest  # 指定 runner 執行環境為最新版 Ubuntu Linux
+
     steps:
       - name: 取得程式碼
         uses: actions/checkout@v4
+        # uses: 指定要用哪個 action
+        # actions/checkout@v4：官方提供的 checkout action，第4版
+        # 這個 action 會把你的 repository 程式碼下載到 runner 上
 
-      - name: 安裝 Node.js 20
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
+      - name: 建立 Docker 映像（hello-world-app）
+        run: docker build -t hello-world-app ./hello-world-app
+        # run: 執行 shell 指令
+        # docker build：建立 Docker 映像檔
+        # -t hello-world-app：將映像檔命名為 hello-world-app（-t 代表 tag）
+        # ./hello-world-app：指定 Dockerfile 與程式碼所在的目錄
 
-      - name: 安裝依賴（hello-world-app）
-        run: npm ci --prefix hello-world-app
-
-      - name: 煙霧測試（顯示一行訊息代表流程正常執行）
-        run: node -e "console.log('ci ok')"
+      - name: 使用 Docker 執行煙霧測試
+        run: docker run --rm hello-world-app node -e "console.log('ci ok')"
+        # docker run：啟動一個新的容器
+        # --rm：容器結束後自動刪除（避免佔用空間）
+        # hello-world-app：要執行的映像檔名稱
+        # node -e "console.log('ci ok')"：在容器內執行 node，-e 代表直接執行後面這段 JavaScript 程式碼
+        # 這裡是做簡單測試，實務上可改成 npm test 或你的測試指令
