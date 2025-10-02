@@ -281,7 +281,7 @@ gcloud auth revoke
 在 `hello-world-app` 資料夾下，打開終端機執行：
 
 ```bash
-npm install express firebase-admin
+npm install express firebase-admin nodemailer dotenv
 ```
 
 ---
