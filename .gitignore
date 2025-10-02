@@ -37,3 +37,5 @@ coverage/
 # Others
 *.bak
 *.old
+
+hello-world-app/hello-world-register-firebase-adminsdk-fbsvc-048afc5730.json

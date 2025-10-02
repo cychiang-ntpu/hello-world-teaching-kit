@@ -248,6 +248,160 @@ gcloud auth revoke
 
 ---
 
+## 2-1) 加入註冊網站功能（Node.js + Express + Firebase）
+
+> 本段教你如何讓 Hello World 網站支援「註冊帳號」功能，並將帳號資料存到 Firebase Authentication。  
+> 適合初學者，步驟詳細，請照順序操作。
+
+---
+
+### 步驟 1：啟用 Firebase Authentication
+
+1. 前往 [Firebase Console](https://console.firebase.google.com/)，選擇你的專案。
+2. 點選左側「Authentication」→「Sign-in method」。
+3. 啟用「Email/Password」登入方式。
+
+---
+
+### 步驟 2：下載 Firebase 服務帳號金鑰
+
+1. 前往 [Google Cloud Console](https://console.cloud.google.com/)（選擇你的 Firebase 專案）。
+2. 左側選單點「IAM 與管理員」→「服務帳號」。
+3. 找到名稱包含 `firebase-adminsdk` 的服務帳號（沒有就建立一個）。
+4. 點右側「動作」(⋮) →「管理金鑰」→「新增金鑰」→ 選擇「JSON」→ 按「建立」。
+5. 下載下來的檔案（如 `serviceAccountKey.json`），請放到 `hello-world-app/` 資料夾內。
+
+> **安全提醒：**  
+> 請勿將金鑰檔上傳到公開的 GitHub repository，建議將其加入 `.gitignore`。
+
+---
+
+### 步驟 3：安裝必要套件
+
+在 `hello-world-app` 資料夾下，打開終端機執行：
+
+```bash
+npm install express firebase-admin
+```
+
+---
+
+### 步驟 4：修改 server.js，加入註冊功能
+
+將 `hello-world-app/server.js` 修改如下（或依下方片段補上註冊功能）：
+
+```javascript
+// ===============================
+// 教學版 server.js（超詳細中文註解）
+// 技術：Node.js + Express + Firebase Admin SDK
+// 目標：提供三個主要功能：
+//   1) GET /        -> 顯示 Hello World 首頁 (HTML)
+//   2) GET /health  -> 健康檢查端點（給 Cloud Run / 負載平衡器探測用）
+//   3) 註冊頁面與註冊表單處理（用 Firebase 建立帳號）
+// ===============================
+
+const express = require('express');
+const admin = require('firebase-admin');
+
+// 載入 Firebase 服務帳號金鑰
+const serviceAccount = require('./serviceAccountKey.json'); // 檔名依你下載的為主
+
+// 初始化 Firebase Admin
+admin.initializeApp({
+  credential: admin.credential.cert(serviceAccount)
+});
+
+const app = express();
+app.use(express.urlencoded({ extended: true }));
+
+// 首頁
+app.get('/', (req, res) => {
+  res.send(`
+    <h1>Hello World!</h1>
+    <p>這是首頁。</p>
+    <a href="/register">註冊帳號</a>
+  `);
+});
+
+// 健康檢查
+app.get('/health', (req, res) => {
+  res.status(200).send('OK');
+});
+
+// 註冊頁面（GET）
+app.get('/register', (req, res) => {
+  res.send(`
+    <h1>註冊帳號</h1>
+    <form method="POST" action="/register">
+      <label>帳號（Email）：<input type="email" name="username" required></label><br>
+      <label>密碼：<input type="password" name="password" required></label><br>
+      <button type="submit">註冊</button>
+    </form>
+    <a href="/">回首頁</a>
+  `);
+});
+
+// 處理註冊表單（POST）：用 Firebase 建立新帳號
+app.post('/register', async (req, res) => {
+  const { username, password } = req.body;
+  try {
+    // 用 Firebase Admin 建立新使用者
+    const userRecord = await admin.auth().createUser({
+      email: username,
+      password: password
+    });
+    res.send(`
+      <h2>註冊成功！</h2>
+      <p>帳號（Email）：${userRecord.email}</p>
+      <a href="/">回首頁</a>
+    `);
+  } catch (error) {
+    // 錯誤處理（如帳號已存在、密碼不符規則等）
+    res.send(`
+      <h2>註冊失敗</h2>
+      <p>錯誤訊息：${error.message}</p>
+      <a href="/register">回註冊頁</a>
+    `);
+  }
+});
+
+// 決定伺服器監聽的埠號
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+  console.log(`Listening on port ${PORT}`);
+});
+```
+
+---
+
+### 步驟 5：本地測試
+
+1. 在 `hello-world-app` 資料夾下執行：
+   ```bash
+   node server.js
+   ```
+2. 打開瀏覽器，前往 [http://localhost:3000](http://localhost:3000)
+3. 點選「註冊帳號」，填寫 Email 與密碼，測試註冊功能。
+
+---
+
+### 常見問題 Q&A
+
+- **Q：註冊失敗，顯示找不到金鑰或權限錯誤？**  
+  A：請確認 `serviceAccountKey.json` 檔案已放在 `hello-world-app/`，且檔名正確。
+
+- **Q：密碼有什麼限制？**  
+  A：Firebase 預設密碼需至少 6 字元。
+
+- **Q：如何在 Firebase 後台看到註冊的帳號？**  
+  A：到 Firebase Console → Authentication → Users，可以看到所有已註冊帳號。
+
+---
+
+> 完成以上步驟，你的 Hello World 網站就支援註冊功能，並能將帳號資料安全存到 Firebase Authentication！
+
+---
+
 > **常見問題 Q&A：**
 > - 如果遇到權限錯誤，請確認 GCP 帳號有「Cloud Run 管理員」角色。
 > - 如果部署失敗，請檢查專案 ID、區域、API 是否都啟用。
