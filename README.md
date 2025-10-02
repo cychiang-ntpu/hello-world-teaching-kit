@@ -1,5 +1,8 @@
 # 教學版：Hello World（Node.js + Express + Docker）＋ GitHub 協作 ＋ Cloud Run 部署
 
+[![CI](https://github.com/cychiang-ntpu/hello-world-teaching-kit/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/cychiang-ntpu/hello-world-teaching-kit/actions/workflows/ci.yml)
+[![Deploy to Cloud Run (Dev)](https://github.com/cychiang-ntpu/hello-world-teaching-kit/actions/workflows/deploy-dev.yml/badge.svg?branch=main)](https://github.com/cychiang-ntpu/hello-world-teaching-kit/actions/workflows/deploy-dev.yml)
+
 這是一套專為**初學者**設計的最小可用專案，讓你從本地開發、多人協作、CI/CD 到雲端部署，一步步學會現代開發流程。
 
 ---
